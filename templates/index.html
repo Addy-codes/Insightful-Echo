@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Processing</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Video Processing App</h1>
+        </header>
+        <main>
+            <form action="/" method="post" enctype="multipart/form-data">
+                <div class="upload-section">
+                    <input type="file" name="file" id="videoUpload" accept="video/*">
+                    <label for="videoUpload" class="upload-button">Upload Video</label>
+                    <button type="submit" class="generate-button">Generate Video</button>
+                </div>
+            </form>
+            <div class="processing-section" id="processingSection">
+                <div class="loader"></div>
+                <p>Processing...</p>
+            </div>
+            <div class="download-section">
+                <button class="download-button" id="downloadButton" disabled>Download Processed Video</button>
+            </div>
+            <div class="upload-section">
+                <form action="/generate" method="post" enctype="multipart/form-data">
+                    <input type="file" name="file" id="videoUpload" accept="video/*">
+                    <label for="videoUpload" class="upload-button">Upload Video</label>
+                    <button type="submit" class="generate-button">Generate Video</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // JavaScript to handle the upload and processing display
+        document.getElementById('videoUpload').addEventListener('change', function (event) {
+            if (event.target.files.length > 0) {
+                // Show processing section
+                document.getElementById('processingSection').style.display = 'block';
+
+                // Simulate processing time (e.g., 5 seconds)
+                setTimeout(function () {
+                    // Hide processing section
+                    document.getElementById('processingSection').style.display = 'none';
+
+                    // Enable download button
+                    document.getElementById('downloadButton').disabled = false;
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+
+</html>
