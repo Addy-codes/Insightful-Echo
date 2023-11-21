@@ -81,12 +81,12 @@ def capture_frames(video_path, output_folder, num_frames):
     # Release the video capture object
     cap.release()
 
-def generate_audio(text):
+def generate_audio(text, dir_path):
     audio = generate(text=text, voice="David Attenborough", model="eleven_turbo_v2")
 
-    unique_id = base64.urlsafe_b64encode(os.urandom(30)).decode("utf-8").rstrip("=")
-    dir_path = os.path.join("narration", unique_id)
-    os.makedirs(dir_path, exist_ok=True)
+    # unique_id = base64.urlsafe_b64encode(os.urandom(30)).decode("utf-8").rstrip("=")
+    # dir_path = os.path.join("narration", unique_id)
+    # os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, "audio.wav")
 
     with open(file_path, "wb") as f:
@@ -185,15 +185,15 @@ def replace_audio(video_path, audio_path, output_path):
     video_with_new_audio.write_videofile(output_path, codec="libx264", audio_codec="aac")
 
 
-def process_video(video_path):
-    num_frames = 2
-    capture_frames(video_path, video_path, num_frames)
+def process_video(video_path, UPLOAD_FOLDER):
+    num_frames = 7
+    capture_frames(video_path, UPLOAD_FOLDER, num_frames)
     script = []
     total_analysis = ""
 
     # Iterate through all the frame images
     for i in range(num_frames):  # Adjust the range if you have more or fewer images
-        image_path = os.path.join(os.getcwd(), f"./frames/frame_{i}.png")
+        image_path = os.path.join(os.getcwd(), f"{UPLOAD_FOLDER}/frame_{i}.png")
         base64_image = encode_image(image_path)
 
         # Analyze the image and get commentary
@@ -211,6 +211,7 @@ def process_video(video_path):
     # Play the total analysis as audio after processing all images
     print("🎙️ Playing total commentary:")
     print(total_analysis)
-    audio_path = generate_audio(total_analysis)
+    audio_path = generate_audio(total_analysis,UPLOAD_FOLDER)
 
-    replace_audio("video_source/sample.mp4", audio_path, "video_source/output_sample.mp4")
+    replace_audio(video_path, audio_path, f"{video_path}_out.mp4")
+
