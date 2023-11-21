@@ -7,7 +7,7 @@ import time
 import simpleaudio as sa
 import errno
 from elevenlabs import generate, play, voices, set_api_key
-from moviepy.editor import VideoFileClip, AudioFileClip
+from moviepy.editor import VideoFileClip, AudioFileClip, vfx
 
 set_api_key("b8846f079bc2e91668b2879763ab64f3")
 
@@ -82,7 +82,7 @@ def capture_frames(video_path, output_folder, num_frames):
     cap.release()
 
 def generate_audio(text):
-    audio = generate(text=text, voice="21m00Tcm4TlvDq8ikWAM", model="eleven_turbo_v2")
+    audio = generate(text=text, voice="David Attenborough", model="eleven_turbo_v2")
 
     unique_id = base64.urlsafe_b64encode(os.urandom(30)).decode("utf-8").rstrip("=")
     dir_path = os.path.join("narration", unique_id)
@@ -153,7 +153,7 @@ def tune_prompt(total_analysis):
                 "role": "system",
                 "content": """
                 You are Sir David Attenborough. Narrate the given description of human as if it is a nature documentary. Describe any gestures made by the human in the description.
-                Make it snarky and funny. If you find anything remotely interesting in the description, make a big deal about it! Limit the answer to about 100 to 150 words.
+                Make it snarky and funny. If you find anything remotely interesting in the description, make a big deal about it! Limit the answer to about 100-150 words.
                 """,
             },
             {
@@ -176,7 +176,7 @@ def replace_audio(video_path, audio_path, output_path):
     if new_audio.duration > video.duration:
         new_audio = new_audio.subclip(0, video.duration)
     else:
-        new_audio = new_audio.loop(duration=video.duration)
+        new_audio = new_audio.vfx.audio_loop(duration=video.duration)
 
     # Set the audio of the video clip to the new audio
     video_with_new_audio = video.set_audio(new_audio)
@@ -184,8 +184,9 @@ def replace_audio(video_path, audio_path, output_path):
     # Write the result to a file
     video_with_new_audio.write_videofile(output_path, codec="libx264", audio_codec="aac")
 
+
 def process_video(video_path):
-    num_frames = 7
+    num_frames = 2
     capture_frames(video_path, video_path, num_frames)
     script = []
     total_analysis = ""

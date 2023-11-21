@@ -11,52 +11,55 @@
 <body>
     <div class="container">
         <header>
-            <h1>Video Processing App</h1>
+            <h1>Insightful Echo</h1>
         </header>
         <main>
             <form action="/" method="post" enctype="multipart/form-data">
                 <div class="upload-section">
                     <input type="file" name="file" id="videoUpload" accept="video/*">
-                    <label for="videoUpload" class="upload-button">Upload Video</label>
+                    <!-- <label for="videoUpload" class="upload-button">Upload Video</label> -->
                     <button type="submit" class="generate-button">Generate Video</button>
                 </div>
             </form>
-            </form>
-            <div class="processing-section" id="processingSection">
+
+            <div class="processing-section" id="processingSection" style="display: none;">
                 <div class="loader"></div>
                 <p>Processing...</p>
             </div>
-            <div class="download-section">
-                <button class="download-button" id="downloadButton" disabled>Download Processed Video</button>
-            </div>
-            <div class="upload-section">
-                <form action="/generate" method="post" enctype="multipart/form-data">
-                    <input type="file" name="file" id="videoUpload" accept="video/*">
-                    <label for="videoUpload" class="upload-button">Upload Video</label>
-                    <button type="submit" class="generate-button">Generate Video</button>
-                </form>
+
+            <div class="download-section" id="downloadSection">
+                <!-- Directly link to the download route -->
+                <a href="/download" download>
+                    <button class="download-button">Download Processed Video</button>
+                </a>
             </div>
         </main>
     </div>
 
     <script>
-        // JavaScript to handle the upload and processing display
-        document.getElementById('videoUpload').addEventListener('change', function (event) {
-            if (event.target.files.length > 0) {
+        // Attach the event listener to the form submission
+        document.querySelector('form').addEventListener('submit', function (event) {
+            // Prevent the default form submission behavior
+            event.preventDefault();
+
+            // Check if a file has been selected
+            var fileInput = document.getElementById('videoUpload');
+            if (fileInput.files.length > 0) {
                 // Show processing section
                 document.getElementById('processingSection').style.display = 'block';
 
-                // Simulate processing time (e.g., 5 seconds)
-                setTimeout(function () {
-                    // Hide processing section
-                    document.getElementById('processingSection').style.display = 'none';
+                // Submit the form
+                event.target.submit();
 
-                    // Enable download button
-                    document.getElementById('downloadButton').disabled = false;
-                }, 5000);
+                // After submitting, wait for some time before checking for the processed file
+                // Adjust the timeout as per the expected processing time
+                setTimeout(function () {
+                    checkForProcessedFile(fileInput.files[0].name);
+                }, 10000); // 10 seconds wait after upload before starting to check
             }
         });
     </script>
+
 </body>
 
 </html>

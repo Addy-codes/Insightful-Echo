@@ -1,26 +1,105 @@
-from moviepy.editor import VideoFileClip, AudioFileClip
+import os
+from openai import OpenAI
+import base64
+import json
+import time
+import simpleaudio as sa
+import errno
+from elevenlabs import generate, play, set_api_key, voices
 
-def replace_audio(video_path, audio_path, output_path):
-    # Load the video and the new audio
-    video = VideoFileClip(video_path)
-    new_audio = AudioFileClip(audio_path)
+client = OpenAI()
 
-    # If the new audio is longer than the video, trim it
-    # If the new audio is shorter, loop it
-    if new_audio.duration > video.duration:
-        new_audio = new_audio.subclip(0, video.duration)
-    else:
-        new_audio = new_audio.loop(duration=video.duration)
+set_api_key("b8846f079bc2e91668b2879763ab64f3")
 
-    # Set the audio of the video clip to the new audio
-    video_with_new_audio = video.set_audio(new_audio)
+def encode_image(image_path):
+    while True:
+        try:
+            with open(image_path, "rb") as image_file:
+                return base64.b64encode(image_file.read()).decode("utf-8")
+        except IOError as e:
+            if e.errno != errno.EACCES:
+                # Not a "file in use" error, re-raise
+                raise
+            # File is being written to, wait a bit and retry
+            time.sleep(0.1)
 
-    # Write the result to a file
-    video_with_new_audio.write_videofile(output_path, codec="libx264", audio_codec="aac")
 
-# Example usage
-video_source_path = 'video_source/sample.mp4'  # Path to your video file
-audio_source_path = 'audio_source/audio.wav'    # Path to your new audio file
-output_video_path = 'video_source/output_video.mp4'  # Path for the output video
+def play_audio(text):
+    audio = generate(text=text, voice="David Attenborough", model="eleven_turbo_v2")
 
-replace_audio(video_source_path, audio_source_path, output_video_path)
+    unique_id = base64.urlsafe_b64encode(os.urandom(30)).decode("utf-8").rstrip("=")
+    dir_path = os.path.join("narration", unique_id)
+    os.makedirs(dir_path, exist_ok=True)
+    file_path = os.path.join(dir_path, "audio.wav")
+
+    with open(file_path, "wb") as f:
+        f.write(audio)
+
+    # play(audio)
+
+    print(file_path)
+
+
+def generate_new_line(base64_image):
+    return [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "Describe this image"},
+                {
+                    "type": "image_url",
+                    "image_url": f"data:image/jpeg;base64,{base64_image}",
+                },
+            ],
+        },
+    ]
+
+
+def analyze_image(base64_image, script):
+    response = client.chat.completions.create(
+        model="gpt-4-vision-preview",
+        messages=[
+            {
+                "role": "system",
+                "content": """
+                You are Sir David Attenborough. Narrate the picture of the human as if it is a nature documentary.
+                Make it snarky and funny. Don't repeat yourself. Make it short. If I do anything remotely interesting, make a big deal about it!
+                """,
+            },
+        ]
+        + script
+        + generate_new_line(base64_image),
+        max_tokens=500,
+    )
+    response_text = response.choices[0].message.content
+    return response_text
+
+
+def main():
+    # script = []
+
+    # while True:
+    #     # path to your image
+    #     image_path = os.path.join(os.getcwd(), "./frames/frame.jpg")
+
+    #     # getting the base64 encoding
+    #     base64_image = encode_image(image_path)
+
+    #     # analyze posture
+    #     print("👀 David is watching...")
+    #     analysis = analyze_image(base64_image, script=script)
+
+    #     print("🎙️ David says:")
+    #     print(analysis)
+
+    #     play_audio(analysis)
+
+    #     script = script + [{"role": "assistant", "content": analysis}]
+
+    #     # wait for 5 seconds
+    #     time.sleep(5)
+    play_audio("The Homo sapiens commonly known as a human, clad in vibrant blue symbology possibly a form of tribal identification or just bad fashion, we can't be certain. Behold their habitat. A glorious mismatch of synthetic elements. And if one squints just right, a not entirely dead houseplant. Rather extravagantly. This creature sports a pair of hightech appendages around its ears.")
+
+
+if __name__ == "__main__":
+    main()

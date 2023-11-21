@@ -3,3 +3,5 @@
 /narration
 /frames/*
 !/frames/.gitkeep
+/video_source
+video_source/output_sample.mp4
